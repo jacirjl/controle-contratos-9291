@@ -739,10 +739,30 @@ function openOSDrawer(osId) {
 
     <!-- Fluxo instruções.md (Etapas 1 a 5) + Histórico RMEC no Processo 25.609.621-8 -->
     ${(() => {
-      const wf = (window.CONTRACT_DATA.fluxoInstrucoesOS || {})[os.id];
+      const wfList = Array.isArray(window.CONTRACT_DATA.fluxoInstrucoesOS) ? window.CONTRACT_DATA.fluxoInstrucoesOS : [];
+      const wf = wfList.find((w) => w.os_id === os.id);
       const ciclos = (window.CONTRACT_DATA.ciclosRMEC || []).filter((c) =>
-        (c.os_breakdown || []).some((b) => b.os === os.id && (b.total > 0 || b.obs))
+        (c.itensOS || []).some((b) => b.os_id === os.id && (b.total > 0 || b.obs))
       );
+      const stepCell = (num, label, stepObj) => {
+        if (!stepObj) return "";
+        const stColor =
+          stepObj.status === "OK"
+            ? "text-emerald-400"
+            : stepObj.status === "CRITICO"
+            ? "text-rose-400"
+            : "text-amber-300";
+        return `
+          <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-purple-300 font-bold">${num}. ${label}</span>
+              <span class="font-mono text-[10px] font-bold ${stColor}">${stepObj.status}</span>
+            </div>
+            <div class="text-white font-mono mt-0.5">${stepObj.data} (fl. ${stepObj.page})</div>
+            <div class="text-slate-400 mt-0.5 leading-snug">${stepObj.desc}</div>
+          </div>
+        `;
+      };
       return `
       <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/40 mb-6">
         <div class="flex items-center justify-between mb-3">
@@ -752,31 +772,11 @@ function openOSDrawer(osId) {
         ${
           wf
             ? `<div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-[11px] mb-3">
-                <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
-                  <div class="font-mono text-purple-300 font-bold">1. Solicitação+PT</div>
-                  <div class="text-white font-mono mt-0.5">${wf.s1_date} (${wf.s1_page})</div>
-                  <div class="text-slate-400 mt-0.5">${wf.s1_note}</div>
-                </div>
-                <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
-                  <div class="font-mono text-purple-300 font-bold">2. SEIA➔CELEPAR</div>
-                  <div class="text-white font-mono mt-0.5">${wf.s2_date} (${wf.s2_page})</div>
-                  <div class="text-slate-400 mt-0.5">${wf.s2_note}</div>
-                </div>
-                <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
-                  <div class="font-mono text-purple-300 font-bold">3. Retorno Custos</div>
-                  <div class="text-white font-mono mt-0.5">${wf.s3_date} (${wf.s3_page})</div>
-                  <div class="text-slate-400 mt-0.5">${wf.s3_note}</div>
-                </div>
-                <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
-                  <div class="font-mono text-purple-300 font-bold">4. Emissão OS</div>
-                  <div class="text-white font-mono mt-0.5">${wf.s4_date} (${wf.s4_page})</div>
-                  <div class="text-slate-400 mt-0.5">${wf.s4_note}</div>
-                </div>
-                <div class="p-2 rounded bg-slate-950/90 border border-slate-800">
-                  <div class="font-mono text-purple-300 font-bold">5. Início Execução</div>
-                  <div class="text-white font-mono mt-0.5">${wf.s5_date} (${wf.s5_page})</div>
-                  <div class="text-slate-400 mt-0.5">${wf.s5_note}</div>
-                </div>
+                ${stepCell(1, "Solicitação+PT", wf.e1_pt)}
+                ${stepCell(2, "SEIA➔CELEPAR", wf.e2_enc)}
+                ${stepCell(3, "Retorno Custos", wf.e3_dim)}
+                ${stepCell(4, "Emissão OS", wf.e4_os)}
+                ${stepCell(5, "Início Execução", wf.e5_ini)}
               </div>`
             : ""
         }
@@ -786,11 +786,13 @@ function openOSDrawer(osId) {
                <div class="space-y-1.5">
                  ${ciclos
                    .map((c) => {
-                     const item = c.os_breakdown.find((b) => b.os === os.id);
+                     const item = (c.itensOS || []).find((b) => b.os_id === os.id);
+                     if (!item) return "";
                      return `<div class="flex flex-wrap items-center justify-between gap-2 px-2.5 py-1.5 rounded bg-slate-950/80 border border-slate-800 text-[11px]">
                        <span class="font-mono font-bold text-purple-300">${c.competencia}</span>
                        <span class="font-mono text-slate-300">${fmtNum(item.usn)} USN | ${fmtNum(item.ust)} UST</span>
                        <span class="font-mono font-bold text-emerald-400">${fmtBRL(item.total)}</span>
+                       <span class="text-slate-400 text-[10px]">${item.obs || ""}</span>
                        <a href="../Processo_25.609.621-8_1.pdf#page=${item.rmec_page}" target="_blank" class="px-2 py-0.5 rounded bg-purple-900/40 text-purple-200 font-mono hover:bg-purple-800">Pág. ${item.rmec_page} ↗</a>
                      </div>`;
                    })
@@ -1481,7 +1483,6 @@ function renderCronologiaView() {
   const D = window.CONTRACT_DATA;
   const events = D.linhaTempoCronologica || [];
   const ciclos = D.ciclosRMEC || [];
-  const wfMap = D.fluxoInstrucoesOS || {};
 
   // 1. Renderizar Stepper das 10 Etapas
   const stepsGrid = document.getElementById("instrucoes-10-steps-grid");
@@ -1512,99 +1513,99 @@ function renderCronologiaView() {
   if (rmecTbody) {
     rmecTbody.innerHTML = ciclos
       .map((c, idx) => {
-        const isPaid = c.status_ciclo === "PAGO_E_ARQUIVADO";
-        const hasGlosa = Boolean(c.glosa_ou_devolucao);
-        const firstPageRMEC = parseInt((c.rmec_pages || "21").split("-")[0], 10) || 21;
-        const firstPageNF = parseInt((c.nf_page_proc_mae || "747").replace(/[^0-9]/g, ""), 10) || 747;
-        const firstPageOB = parseInt((c.nfs_pagamento_page || "760").split("-")[0], 10) || 760;
+        const nf = c.procMaeNF || {};
+        const isPaid = (nf.statusEtapa7a9 || "").includes("PAGO");
+        const hasGlosa = Boolean(c.houveGlosaOuRetificacao);
+        const fechamentoPage = c.fechamentoPageNum || 21;
+        const atestoPage = c.atestoPageNum || fechamentoPage;
+        const procMaePage = nf.procMaePage || 762;
+        const itens = c.itensOS || [];
 
         return `
           <tr class="border-b border-slate-800/80 hover:bg-slate-900/60 transition text-xs">
             <td class="py-3 px-3">
               <div class="font-mono font-bold text-white">${c.competencia}</div>
-              <span class="badge ${isPaid ? "badge-success" : "badge-warning"} mt-1 inline-block">${c.status_ciclo}</span>
+              <div class="text-[10px] font-mono text-slate-400">${c.periodoExecucao || ""}</div>
+              <span class="badge ${isPaid ? "badge-success" : "badge-warning"} mt-1 inline-block">${nf.statusEtapa7a9 || "EM ANÁLISE"}</span>
             </td>
             <td class="py-3 px-3">
-              <div class="font-mono text-purple-300 font-semibold">${c.oficio_celepar}</div>
-              <div class="text-[11px] text-slate-400">Em ${c.rmec_submission_date.split("-").reverse().join("/")}</div>
-              <a href="../Processo_25.609.621-8_1.pdf#page=${firstPageRMEC}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-950/60 border border-purple-500/40 text-purple-200 font-mono text-[10px] hover:bg-purple-800">
-                📄 Fls. ${c.rmec_pages} (25.609.621-8) ↗
+              <div class="font-mono text-purple-300 font-semibold">${c.dataSubmissaoCelepar || ""}</div>
+              <div class="text-[11px] text-slate-400">Fechamento: ${c.fechamentoPages || ""}</div>
+              <a href="../Processo_25.609.621-8_1.pdf#page=${fechamentoPage}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-purple-950/60 border border-purple-500/40 text-purple-200 font-mono text-[10px] hover:bg-purple-800">
+                📄 Fl. ${fechamentoPage} (25.609.621-8) ↗
               </a>
             </td>
             <td class="py-3 px-3 font-mono">
-              <div class="text-white font-bold">${fmtBRL(c.total_rmec_brl)}</div>
-              <div class="text-[11px] text-sky-300">${fmtNum(c.total_usn)} USN</div>
-              <div class="text-[11px] text-indigo-300">${fmtNum(c.total_ust)} UST</div>
+              <div class="text-white font-bold">${fmtBRL(c.valorTotalFechamento)}</div>
+              <div class="text-[11px] text-sky-300">${fmtNum(c.usnTotal)} USN (${fmtBRL(c.valorUSNTotal)})</div>
+              <div class="text-[11px] text-indigo-300">${fmtNum(c.ustTotal)} UST (${fmtBRL(c.valorUSTTotal)})</div>
             </td>
             <td class="py-3 px-3">
               ${
-                c.seia_atesto_date
-                  ? `<div class="font-mono text-emerald-400 font-semibold">✅ Atestado em ${c.seia_atesto_date.split("-").reverse().join("/")}</div>
-                     <a href="../Processo_25.609.621-8_1.pdf#page=${c.seia_atesto_page}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] hover:bg-emerald-800">
-                       📄 Atesto SEIA Fl. ${c.seia_atesto_page} ↗
+                c.atestoPageNum
+                  ? `<div class="font-mono text-emerald-400 font-semibold">✅ Atesto: ${c.atestoData}</div>
+                     <a href="../Processo_25.609.621-8_1.pdf#page=${atestoPage}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-950/50 border border-emerald-500/40 text-emerald-300 font-mono text-[10px] hover:bg-emerald-800">
+                       📄 ${c.atestoPages || "Fl. " + atestoPage} ↗
                      </a>`
-                  : `<div class="font-mono text-amber-300 font-semibold">⏳ Aguardando Atesto SEIA</div>
-                     <div class="text-[11px] text-slate-400">Submetido na Fl. 766</div>`
+                  : `<div class="font-mono text-amber-300 font-semibold">⏳ ${c.atestoData || "Aguardando Atesto SEIA"}</div>
+                     <div class="text-[11px] text-slate-400">${c.atestoPages || ""}</div>`
               }
-              ${
-                hasGlosa
-                  ? `<div class="mt-1.5 p-1.5 rounded bg-rose-950/50 border border-rose-500/40 text-[10px] text-rose-200 leading-snug">
-                       ⚠️ <strong>Fiscalização SEIA:</strong> ${c.glosa_ou_devolucao}
-                     </div>`
-                  : ""
-              }
+              <div class="mt-1.5 p-1.5 rounded ${hasGlosa ? "bg-rose-950/50 border border-rose-500/40 text-rose-200" : "bg-slate-950/60 border border-slate-800 text-slate-300"} text-[10px] leading-snug">
+                ${hasGlosa ? "⚠️ <strong>Glosa / Fiscalização SEIA:</strong> " : "ℹ️ "}${c.detalheFiscalizacao || ""}
+              </div>
             </td>
             <td class="py-3 px-3 font-mono">
               ${
-                c.nf_numero !== "AGUARDANDO_ATESTO"
-                  ? `<div class="text-white font-bold">NFS-e ${c.nf_numero}</div>
-                     <div class="text-[11px] text-slate-400">${c.nf_emissao_date.split("-").reverse().join("/")}</div>
-                     <a href="../Processo_24.574.062-0_1.pdf#page=${firstPageNF}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-slate-800 text-sky-300 text-[10px] hover:bg-slate-700">
-                       📄 Proc. Mãe Fl. ${c.nf_page_proc_mae} ↗
+                nf.procMaePage
+                  ? `<div class="text-white font-bold text-[11px]">${nf.nfUSN || ""}</div>
+                     <div class="text-indigo-300 text-[11px]">${nf.nfUST || ""}</div>
+                     <div class="text-[10px] text-slate-400 mt-0.5">Envio NAS: ${nf.encaminhamentoNAS || ""}</div>
+                     <a href="../Processo_24.574.062-0_1.pdf#page=${procMaePage}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-slate-800 text-sky-300 text-[10px] hover:bg-slate-700">
+                       📄 Proc. Mãe Fl. ${procMaePage} ↗
                      </a>`
-                  : `<span class="text-slate-500">Aguarda Etapa 6</span>`
+                  : `<span class="text-amber-300 text-[11px]">${nf.nfUSN || "Aguarda Atesto Etapa 6"}</span>`
               }
             </td>
             <td class="py-3 px-3">
               ${
-                c.nas_gms_date
-                  ? `<div class="font-mono text-sky-300 font-semibold">${c.nas_gms_date.split("-").reverse().join("/")}</div>
-                     <div class="text-[11px] text-slate-400">Lançado GMS 47396/2025 (Fl. ${c.nas_gms_page})</div>`
-                  : `<span class="text-slate-500 font-mono">—</span>`
+                nf.lancamentoGMS && !nf.lancamentoGMS.includes("Aguardando")
+                  ? `<div class="font-mono text-sky-300 font-semibold">${nf.lancamentoGMS}</div>
+                     <div class="text-[11px] text-slate-400">GMS 47396/2025</div>`
+                  : `<span class="text-slate-500 font-mono text-[11px]">${nf.lancamentoGMS || "—"}</span>`
               }
             </td>
             <td class="py-3 px-3">
               ${
-                c.nfs_pagamento_date
-                  ? `<div class="font-mono text-emerald-400 font-bold">Pago em ${c.nfs_pagamento_date.split("-").reverse().join("/")}</div>
-                     <div class="text-[10px] font-mono text-slate-300">${c.nl_numeros}</div>
-                     <div class="text-[10px] font-mono text-slate-400">${c.ob_numeros}</div>
-                     <a href="../Processo_24.574.062-0_1.pdf#page=${firstPageOB}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">
-                       📄 Fls. ${c.nfs_pagamento_page} ↗
+                isPaid
+                  ? `<div class="font-mono text-emerald-400 font-bold">${nf.ob || ""}</div>
+                     <div class="text-[10px] font-mono text-slate-300">${nf.nl || ""}</div>
+                     <div class="text-[10px] font-mono text-slate-400">${nf.pd || ""}</div>
+                     <a href="../Processo_24.574.062-0_1.pdf#page=${procMaePage + 8}" target="_blank" class="inline-block mt-1 px-2 py-0.5 rounded bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">
+                       📄 Comprovante OB ↗
                      </a>`
-                  : `<span class="text-amber-300 font-mono text-[11px]">Em tramitação</span>`
+                  : `<span class="text-amber-300 font-mono text-[11px]">${nf.statusEtapa7a9 || "Em tramitação"}</span>`
               }
             </td>
             <td class="py-3 px-3 text-right">
               <button onclick="toggleRMECBreakdown(${idx})" class="px-2.5 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600 border border-purple-500/40 text-purple-200 hover:text-white text-xs font-mono font-semibold transition">
-                Ver ${(c.os_breakdown || []).length} OSs ▼
+                Ver ${itens.length} OSs ▼
               </button>
             </td>
           </tr>
           <tr id="rmec-breakdown-row-${idx}" class="hidden bg-slate-950/95 border-b border-slate-800">
             <td colspan="8" class="p-4">
               <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-purple-300 font-mono uppercase">Detalhamento de Consumo por Ordem de Serviço — Competência ${c.competencia} (Processo 25.609.621-8_1.pdf, fls. ${c.rmec_pages})</span>
-                <span class="text-xs font-mono text-slate-400">Soma do Mês: <strong class="text-white">${fmtBRL(c.total_rmec_brl)}</strong></span>
+                <span class="text-xs font-bold text-purple-300 font-mono uppercase">Detalhamento de Consumo por Ordem de Serviço — Competência ${c.competencia} (Processo 25.609.621-8_1.pdf, ${c.fechamentoPages})</span>
+                <span class="text-xs font-mono text-slate-400">Soma do Mês: <strong class="text-white">${fmtBRL(c.valorTotalFechamento)}</strong></span>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                ${(c.os_breakdown || [])
+                ${itens
                   .map(
                     (b) => `
                   <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between text-xs">
                     <div>
                       <div class="flex items-center justify-between">
-                        <button onclick="openOSDrawer('${b.os}')" class="font-mono font-bold text-sky-400 hover:underline">${b.os} (${b.orgao})</button>
+                        <button onclick="openOSDrawer('${b.os_id}')" class="font-mono font-bold text-sky-400 hover:underline">${b.os_id}</button>
                         <a href="../Processo_25.609.621-8_1.pdf#page=${b.rmec_page}" target="_blank" class="px-2 py-0.5 rounded bg-purple-950/60 border border-purple-500/30 text-purple-300 font-mono text-[10px] hover:bg-purple-800">
                           RMEC Fl. ${b.rmec_page} ↗
                         </a>
@@ -1635,8 +1636,8 @@ function renderCronologiaView() {
   const osSelect = document.getElementById("crono-filter-os");
   if (osSelect && osSelect.options.length <= 1) {
     osSelect.innerHTML =
-      `<option value="TODAS">Todas as OSs / Ciclo Global (136)</option>` +
-      `<option value="CICLO_MENSAL">Apenas Ciclos Mensais RMEC/NF/GMS/OB</option>` +
+      `<option value="TODAS">Todas as OSs / Ciclo Global (${events.length})</option>` +
+      `<option value="CICLO_MENSAL">Apenas Ciclos Mensais RMEC/NF/GMS/OB (Etapas 6 a 9)</option>` +
       D.ordensServico.map((o) => `<option value="${o.id}">${o.id} — ${o.siglaOrgao} (${o.titulo})</option>`).join("");
   }
   renderChronologicalTimeline();
@@ -1649,7 +1650,7 @@ function toggleRMECBreakdown(idx) {
 
 function filterSteps1To5Table(query) {
   const D = window.CONTRACT_DATA;
-  const wfMap = D.fluxoInstrucoesOS || {};
+  const wfList = Array.isArray(D.fluxoInstrucoesOS) ? D.fluxoInstrucoesOS : [];
   const tbody = document.getElementById("os-steps-1to5-tbody");
   if (!tbody) return;
 
@@ -1664,17 +1665,30 @@ function filterSteps1To5Table(query) {
     );
   });
 
-  const fmtDateBR = (iso) => (iso ? iso.split("-").reverse().join("/") : "—");
   const statusBadge = (st) => {
-    if (st === "CONCLUIDO") return `<span class="text-emerald-400 font-mono text-[10px] font-bold">✅ OK</span>`;
-    if (st.includes("SEM_") || st.includes("ERRO") || st.includes("RISCO"))
-      return `<span class="text-rose-400 font-mono text-[10px] font-bold">⚠️ ${st}</span>`;
-    return `<span class="text-amber-300 font-mono text-[10px] font-bold">⏳ ${st}</span>`;
+    if (st === "OK") return `<span class="text-emerald-400 font-mono text-[10px] font-bold">✅ OK</span>`;
+    if (st === "CRITICO") return `<span class="text-rose-400 font-mono text-[10px] font-bold">🚨 CRÍTICO</span>`;
+    return `<span class="text-amber-300 font-mono text-[10px] font-bold">⚠️ ${st || "ALERTA"}</span>`;
+  };
+
+  const renderStepCol = (stepObj, pdfUrl, isRMEC = false) => {
+    if (!stepObj) return `<td class="py-2.5 px-3 text-slate-500">—</td>`;
+    const targetPdf = isRMEC && Number(stepObj.page) > 40 ? `../Processo_25.609.621-8_1.pdf#page=${stepObj.page}` : `${pdfUrl}#page=${stepObj.page || 1}`;
+    return `
+      <td class="py-2.5 px-3">
+        <div class="flex items-center justify-between gap-1">
+          ${statusBadge(stepObj.status)}
+          <a href="${targetPdf}" target="_blank" class="font-mono text-[10px] text-sky-400 hover:underline">${stepObj.data} (fl. ${stepObj.page}) ↗</a>
+        </div>
+        <div class="text-[11px] text-slate-300 mt-0.5 leading-snug">${stepObj.desc || ""}</div>
+      </td>
+    `;
   };
 
   tbody.innerHTML = filteredOS
     .map((os) => {
-      const wf = wfMap[os.id] || {};
+      const wf = wfList.find((w) => w.os_id === os.id) || {};
+      const procUrl = os.arquivos.processoPdf;
       return `
         <tr class="border-b border-slate-800/70 hover:bg-slate-900/60 text-xs">
           <td class="py-2.5 px-3">
@@ -1682,28 +1696,13 @@ function filterSteps1To5Table(query) {
             <div class="text-[11px] font-semibold text-white">${os.siglaOrgao} — ${os.titulo}</div>
             <div class="font-mono text-[10px] text-slate-400">Prot: ${os.protocolo}</div>
           </td>
-          <td class="py-2.5 px-3">
-            <div class="flex items-center justify-between">${statusBadge(wf.s1_status || "")} <span class="font-mono text-[10px] text-slate-400">${fmtDateBR(wf.s1_date)} (${wf.s1_page})</span></div>
-            <div class="text-[11px] text-slate-300 mt-0.5">${wf.s1_note || ""}</div>
-          </td>
-          <td class="py-2.5 px-3">
-            <div class="flex items-center justify-between">${statusBadge(wf.s2_status || "")} <span class="font-mono text-[10px] text-slate-400">${fmtDateBR(wf.s2_date)} (${wf.s2_page})</span></div>
-            <div class="text-[11px] text-slate-300 mt-0.5">${wf.s2_note || ""}</div>
-          </td>
-          <td class="py-2.5 px-3">
-            <div class="flex items-center justify-between">${statusBadge(wf.s3_status || "")} <span class="font-mono text-[10px] text-slate-400">${fmtDateBR(wf.s3_date)} (${wf.s3_page})</span></div>
-            <div class="text-[11px] text-slate-300 mt-0.5">${wf.s3_note || ""}</div>
-          </td>
-          <td class="py-2.5 px-3">
-            <div class="flex items-center justify-between">${statusBadge(wf.s4_status || "")} <span class="font-mono text-[10px] text-slate-400">${fmtDateBR(wf.s4_date)} (${wf.s4_page})</span></div>
-            <div class="text-[11px] text-slate-300 mt-0.5">${wf.s4_note || ""}</div>
-          </td>
-          <td class="py-2.5 px-3">
-            <div class="flex items-center justify-between">${statusBadge(wf.s5_status || "")} <span class="font-mono text-[10px] text-slate-400">${fmtDateBR(wf.s5_date)} (${wf.s5_page})</span></div>
-            <div class="text-[11px] text-slate-300 mt-0.5">${wf.s5_note || ""}</div>
-          </td>
+          ${renderStepCol(wf.e1_pt, procUrl)}
+          ${renderStepCol(wf.e2_enc, procUrl)}
+          ${renderStepCol(wf.e3_dim, procUrl)}
+          ${renderStepCol(wf.e4_os, procUrl)}
+          ${renderStepCol(wf.e5_ini, procUrl, true)}
           <td class="py-2.5 px-3 text-right">
-            <a href="${os.arquivos.processoPdf}" target="_blank" class="px-2 py-1 rounded bg-slate-800 hover:bg-indigo-600 text-slate-200 text-[10px] font-mono">Proc. ↗</a>
+            <a href="${procUrl}" target="_blank" class="px-2 py-1 rounded bg-slate-800 hover:bg-indigo-600 text-slate-200 text-[10px] font-mono">Autos ↗</a>
           </td>
         </tr>
       `;
@@ -1730,16 +1729,22 @@ function renderChronologicalTimeline() {
 
   const filtered = allEvents.filter((ev) => {
     if (stepFilter !== "TODAS" && String(ev.step_number) !== String(stepFilter)) return false;
-    if (osFilter !== "TODAS" && ev.os_id !== osFilter) return false;
+    if (osFilter === "CICLO_MENSAL") {
+      if (Number(ev.step_number) < 6 && ev.os_id !== "COBRANCA_RMEC" && ev.os_id !== "CONTRATO_GERAL") return false;
+    } else if (osFilter !== "TODAS" && ev.os_id !== osFilter) {
+      return false;
+    }
     if (searchQ) {
-      const hay = `${ev.event_date} ${ev.title} ${ev.description} ${ev.os_id} ${ev.protocolo} ${ev.step_name}`.toLowerCase();
+      const hay = `${ev.date_br || ""} ${ev.date_iso || ""} ${ev.title || ""} ${ev.detail || ""} ${ev.os_id || ""} ${ev.protocolo || ""} ${ev.competencia || ""} ${ev.step_code || ""}`.toLowerCase();
       if (!hay.includes(searchQ)) return false;
     }
     return true;
   });
 
   filtered.sort((a, b) => {
-    const cmp = a.event_date.localeCompare(b.event_date) || a.step_number - b.step_number;
+    const dA = a.date_iso || "";
+    const dB = b.date_iso || "";
+    const cmp = dA.localeCompare(dB) || Number(a.step_number || 0) - Number(b.step_number || 0) || Number(a.page_num || 0) - Number(b.page_num || 0);
     return sortDir === "ASC" ? cmp : -cmp;
   });
 
@@ -1755,39 +1760,42 @@ function renderChronologicalTimeline() {
 
   listEl.innerHTML = filtered
     .map((ev) => {
-      const dateBR = ev.event_date.split("-").reverse().join("/");
+      const dateBR = (ev.date_br || ev.date_iso || "").split(" ")[0];
+      const timeBR = (ev.date_br || "").split(" ")[1] || "";
       const isMonthly = Number(ev.step_number) >= 6;
+      const docType = ev.doc_type || ev.step_code || "EVENTO";
       const stColor =
-        ev.status === "CONCLUIDO" || ev.status === "ATESTO_EMITIDO"
-          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
-          : ev.status.includes("GLOSA") || ev.status.includes("SEM_") || ev.status.includes("ERRO") || ev.status.includes("RISCO")
+        docType.includes("GLOSA") || docType.includes("ALERTA") || (ev.title || "").includes("FALHA") || (ev.title || "").includes("CRÍTICO")
           ? "border-rose-500/40 bg-rose-500/10 text-rose-300"
-          : "border-amber-500/40 bg-amber-500/10 text-amber-300";
+          : docType.includes("PAGAMENTO") || docType.includes("ATESTO") || docType.includes("OS_ASSINADA")
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+          : "border-sky-500/40 bg-sky-500/10 text-sky-300";
 
-      const firstPage = parseInt(String(ev.page_ref || "1").replace(/[^0-9]/g, ""), 10) || 1;
-      const pdfHref = ev.doc_path ? `../${ev.doc_path}#page=${firstPage}` : "#";
+      const pdfHref = ev.pdf_link || "#";
 
       return `
         <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition flex flex-wrap items-start justify-between gap-3">
           <div class="flex items-start gap-3 max-w-4xl">
-            <div class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-center shrink-0 min-w-[92px]">
+            <div class="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-center shrink-0 min-w-[96px]">
               <div class="font-mono font-bold text-xs text-sky-400">${dateBR}</div>
-              <div class="font-mono text-[10px] ${isMonthly ? "text-purple-300" : "text-slate-400"}">Etapa ${ev.step_number}/10</div>
+              ${timeBR ? `<div class="font-mono text-[10px] text-slate-500">${timeBR}</div>` : ""}
+              <div class="font-mono text-[10px] font-semibold ${isMonthly ? "text-purple-300" : "text-emerald-400"}">Etapa ${ev.step_number}/10</div>
             </div>
             <div>
               <div class="flex flex-wrap items-center gap-2 mb-1">
                 <span class="px-2 py-0.5 rounded bg-slate-800 font-mono text-[10px] font-bold text-white">${ev.os_id}</span>
                 <span class="text-[11px] font-mono text-slate-400">Prot: ${ev.protocolo}</span>
-                <span class="px-2 py-0.5 rounded border text-[10px] font-mono font-semibold ${stColor}">${ev.status}</span>
+                ${ev.competencia && ev.competencia !== "N/A" ? `<span class="px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 font-mono text-[10px]">${ev.competencia}</span>` : ""}
+                <span class="px-2 py-0.5 rounded border text-[10px] font-mono font-semibold ${stColor}">${ev.actor_from || ""} ➔ ${ev.actor_to || ""}</span>
                 ${ev.valor_brl > 0 ? `<span class="font-mono text-xs font-bold text-emerald-400">${fmtBRL(ev.valor_brl)}</span>` : ""}
               </div>
               <h4 class="text-xs font-bold text-white">${ev.title}</h4>
-              <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">${ev.description}</p>
+              <p class="text-xs text-slate-300 mt-0.5 leading-relaxed">${ev.detail || ""}</p>
             </div>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <a href="${pdfHref}" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-sky-600 text-slate-200 hover:text-white font-mono text-[11px] transition">
-              📄 ${ev.page_ref || "Abrir PDF"} ↗
+              📄 Pág. ${ev.page_num || 1} ↗
             </a>
           </div>
         </div>
@@ -1801,18 +1809,17 @@ function renderChronologicalTimeline() {
 // ============================================================================
 function renderVetorialView() {
   const D = window.CONTRACT_DATA;
-  const vStat = D.vectorDBStatus || {
-    totalPdfsTracked: 29,
-    totalPagesIndexed: 3308,
-    totalChronologicalEvents: 136,
-    estimatedTokensSavedOnUpdate: 2811800,
-    watermarks: []
-  };
+  const vStat = D.vectorDBStatus || {};
 
-  renderVectorKPIs(vStat);
+  renderVectorKPIs({
+    totalPdfsTracked: vStat.totalDocuments || 29,
+    totalPagesIndexed: vStat.totalPagesMonitored || 3308,
+    totalChronologicalEvents: (D.linhaTempoCronologica || []).length || 136,
+    estimatedTokensSavedOnUpdate: vStat.totalTokensCached || 1685921
+  });
   renderWatermarksTable(vStat.watermarks || []);
 
-  // Tentar carregar status ao vivo da API Python (/api/status) e rodar busca inicial
+  // Carregar status ao vivo da API Python (/api/status) e rodar busca inicial
   fetch("/api/status")
     .then((r) => r.json())
     .then((data) => {
@@ -1838,17 +1845,17 @@ function renderVectorKPIs(vStat) {
   grid.innerHTML = `
     <div class="glass-card p-4 border-l-4 border-l-emerald-500">
       <span class="text-[11px] font-mono uppercase text-slate-400">Páginas Indexadas no Vector DB</span>
-      <div class="text-2xl font-bold font-mono text-white mt-1">${fmtInt(vStat.totalPagesIndexed)} págs.</div>
-      <div class="text-[11px] text-emerald-400 mt-1">29 PDFs (890 Proc. Mãe + 766 RMEC + 1.652 OSs)</div>
+      <div class="text-2xl font-bold font-mono text-white mt-1">${fmtInt(vStat.totalPagesIndexed || 3308)} págs.</div>
+      <div class="text-[11px] text-emerald-400 mt-1">${vStat.totalPdfsTracked || 29} PDFs (904 Proc. Mãe + 766 RMEC + 1.638 OSs)</div>
     </div>
     <div class="glass-card p-4 border-l-4 border-l-sky-500">
       <span class="text-[11px] font-mono uppercase text-slate-400">Economia de Tokens por Sync Delta</span>
-      <div class="text-2xl font-bold font-mono text-sky-400 mt-1">${fmtInt(vStat.estimatedTokensSavedOnUpdate)} tokens</div>
+      <div class="text-2xl font-bold font-mono text-sky-400 mt-1">${fmtInt(vStat.estimatedTokensSavedOnUpdate || 1685921)} tokens</div>
       <div class="text-[11px] text-slate-300 mt-1">100% de cache hit nas páginas 1..N já ingeridas</div>
     </div>
     <div class="glass-card p-4 border-l-4 border-l-purple-500">
       <span class="text-[11px] font-mono uppercase text-slate-400">Eventos Cronológicos (10 Etapas)</span>
-      <div class="text-2xl font-bold font-mono text-purple-300 mt-1">${fmtInt(vStat.totalChronologicalEvents)} marcos</div>
+      <div class="text-2xl font-bold font-mono text-purple-300 mt-1">${fmtInt(vStat.totalChronologicalEvents || 136)} marcos</div>
       <div class="text-[11px] text-slate-300 mt-1">Indexados por B-Tree (YYYY-MM-DD + Etapa)</div>
     </div>
     <div class="glass-card p-4 border-l-4 border-l-amber-500">
@@ -1869,12 +1876,12 @@ function renderWatermarksTable(watermarks) {
       <tr class="border-b border-slate-800/70 hover:bg-slate-900/60 text-xs font-mono">
         <td class="py-2 px-3 font-bold text-sky-400">${w.doc_id}</td>
         <td class="py-2 px-3 text-slate-200"><a href="../${w.rel_path}" target="_blank" class="hover:underline text-sky-300">${w.rel_path} ↗</a></td>
-        <td class="py-2 px-3 text-slate-400">${w.doc_type}</td>
+        <td class="py-2 px-3 text-slate-400">${w.os_id || w.protocolo || "PROCESSO"}</td>
         <td class="py-2 px-3 text-emerald-400 font-bold">Pág. 1 até ${w.last_ingested_page}</td>
         <td class="py-2 px-3 text-slate-400 text-[11px]">${(w.first_page_sha256 || "").slice(0, 16)}...</td>
         <td class="py-2 px-3 text-purple-300 text-[11px]">${(w.last_page_sha256 || "").slice(0, 16)}...</td>
-        <td class="py-2 px-3 text-sky-300">${fmtInt((w.last_ingested_page || 0) * 850)} tokens</td>
-        <td class="py-2 px-3 text-right"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">CACHED (1..${w.last_ingested_page})</span></td>
+        <td class="py-2 px-3 text-sky-300">${fmtInt(w.tokens_cached || (w.last_ingested_page || 0) * 510)} tokens</td>
+        <td class="py-2 px-3 text-right"><span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">${w.status_integrity || "OK_APPEND_ONLY"} (1..${w.last_ingested_page})</span></td>
       </tr>
     `
     )
@@ -1899,9 +1906,14 @@ function triggerDeltaSync() {
       }
       if (data && data.ok && data.summary) {
         const s = data.summary;
+        const docsChecked = s.total_pdfs_monitored ?? s.documents_checked ?? 29;
+        const newPages = s.new_pages_ingested_delta ?? s.total_new_pages_ingested ?? 0;
+        const skippedPages = s.pages_already_cached_skipped ?? s.total_cached_pages_skipped ?? 3308;
+        const tokensSaved = s.tokens_saved_estimate ?? s.estimated_tokens_saved ?? 1685921;
+
         if (badge) {
-          badge.innerHTML = `Último Sync: ${s.total_new_pages_ingested} págs novas | ${fmtInt(s.total_cached_pages_skipped)} em cache (${fmtInt(
-            s.estimated_tokens_saved
+          badge.innerHTML = `Último Sync: ${newPages} págs novas | ${fmtInt(skippedPages)} em cache (${fmtInt(
+            tokensSaved
           )} tokens economizados)`;
         }
         if (banner) {
@@ -1911,10 +1923,10 @@ function triggerDeltaSync() {
               <div>
                 <div class="text-xs font-bold text-emerald-300 uppercase font-mono">✅ Relatório de Ingestão Incremental (Delta Append-Only) Concluído</div>
                 <p class="text-xs text-slate-200 mt-1">
-                  Foram inspecionados <strong>${s.documents_checked} arquivos PDF</strong>:
-                  <strong class="text-emerald-400">${s.total_new_pages_ingested} páginas novas</strong> processadas com IA/Embeddings e
-                  <strong class="text-sky-300">${fmtInt(s.total_cached_pages_skipped)} páginas anteriores puladas</strong> via validação de Hash SHA-256 da página N,
-                  economizando <strong class="text-emerald-300 font-mono">${fmtInt(s.estimated_tokens_saved)} tokens de IA</strong>!
+                  Foram inspecionados <strong>${docsChecked} arquivos PDF</strong>:
+                  <strong class="text-emerald-400">${newPages} páginas novas</strong> processadas com IA/Embeddings e
+                  <strong class="text-sky-300">${fmtInt(skippedPages)} páginas anteriores puladas</strong> via validação de Hash SHA-256 da página N,
+                  economizando <strong class="text-emerald-300 font-mono">${fmtInt(tokensSaved)} tokens de IA</strong>!
                 </p>
               </div>
               <button onclick="document.getElementById('delta-sync-live-banner').classList.add('hidden')" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 text-xs">Fechar</button>
@@ -1958,32 +1970,35 @@ function runVectorSearch() {
 
       container.innerHTML = data.results
         .map((r, i) => {
-          const ent = r.entities || {};
-          const brlTags = (ent.brl_values || []).slice(0, 4).map((v) => `<span class="px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 font-mono text-[10px]">R$ ${v}</span>`).join("");
-          const dateTags = (ent.dates || []).slice(0, 3).map((d) => `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono text-[10px]">📅 ${d}</span>`).join("");
-          const stepBadge = ent.detected_step ? `<span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold">Etapa ${ent.detected_step}</span>` : "";
+          const scorePct = Math.min(99.9, Math.max(10.0, (Number(r.score || r.similarity_score || 0.5) * 100))).toFixed(1);
+          const pageNum = r.page_num || r.page_number || 1;
+          const pdfHref = r.pdf_link || `../${r.rel_path || "Processo_24.574.062-0_1.pdf"}#page=${pageNum}`;
 
           return `
             <div class="p-3.5 rounded-xl bg-slate-900/95 border border-slate-800 hover:border-sky-500/40 transition">
               <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">#${i + 1} • Score ${(r.similarity_score * 100).toFixed(1)}%</span>
+                  <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono text-[11px] font-bold">#${i + 1} • Score ${scorePct}%</span>
                   <span class="font-mono text-xs font-bold text-white">${r.doc_id}</span>
-                  <span class="font-mono text-xs text-emerald-400">Página ${r.page_number}</span>
-                  ${stepBadge}
-                  <span class="font-mono text-[10px] text-slate-500">SHA256: ${(r.page_sha256 || "").slice(0, 10)}</span>
+                  <span class="px-2 py-0.5 rounded bg-slate-800 font-mono text-[10px] text-sky-300">${r.os_id || ""}</span>
+                  <span class="font-mono text-xs text-emerald-400">Página ${pageNum}</span>
+                  <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-mono text-[10px] font-bold">${r.doc_type || "AUTOS"}</span>
+                  ${r.competencia && r.competencia !== "N/A" ? `<span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px]">${r.competencia}</span>` : ""}
                 </div>
-                <a href="../${r.rel_path}#page=${r.page_number}" target="_blank" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-mono text-[11px] font-semibold transition">
-                  📄 Abrir PDF na Pág. ${r.page_number} ↗
+                <a href="${pdfHref}" target="_blank" class="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-mono text-[11px] font-semibold transition">
+                  📄 Abrir PDF na Pág. ${pageNum} ↗
                 </a>
               </div>
               <div class="text-xs text-slate-200 font-medium leading-relaxed bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/80 mb-2">
-                <strong class="text-sky-400 font-mono text-[10px] uppercase mr-1">[Resumo IA em Cache]:</strong> ${r.ai_summary}
+                <strong class="text-sky-400 font-mono text-[10px] uppercase mr-1">[Resumo IA em Cache]:</strong> ${r.ai_summary || ""}
               </div>
-              <div class="flex flex-wrap items-center gap-1.5">
-                ${brlTags}
-                ${dateTags}
-              </div>
+              ${
+                r.snippet
+                  ? `<div class="text-[11px] text-slate-400 font-mono leading-relaxed bg-slate-950/50 p-2 rounded border border-slate-800/50 line-clamp-2">
+                       <strong>Trecho indexado:</strong> ${r.snippet}
+                     </div>`
+                  : ""
+              }
             </div>
           `;
         })
