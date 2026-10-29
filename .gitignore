@@ -1,0 +1,29 @@
+# Python - arquivos compilados e caches
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes Virtuais
+.venv/
+venv/
+ENV/
+env/
+
+# Arquivos temporários do SQLite (WAL / Shared Memory)
+# Nota: db/contrato_9291.sqlite é versionado para preservar o cache vetorial e cronológico
+*.sqlite-shm
+*.sqlite-wal
+*.db-shm
+*.db-wal
+
+# Autos digitais brutos baixados do e-Protocolo (>100MB limite GitHub; preservados localmente)
+Processo_*.pdf
+Ordens_De_Serviço/**/*.pdf
+Ordens_De_Servico/**/*.pdf
+
+# Pastas de cópia manual legada (substituídas pelo controle de versão Git/SDD)
+plataforma-controle-9291 - Copia/
+
+# Configurações de IDEs
+.vscode/
+.idea/
