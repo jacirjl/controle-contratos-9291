@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plataforma de Governança, Conciliação e Auditoria FinOps — Contrato 9291/2025 (SEIA × CELEPAR)</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "system-ui", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Estilos Customizados Glassmorphism & FinOps UI -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-sky-500 selection:text-white min-h-screen flex flex-col">
+
+  <!-- ====================================================================== -->
+  <!-- HEADER EXECUTIVO DE GOVERNANÇA CONTRATUAL                              -->
+  <!-- ====================================================================== -->
+  <header class="sticky top-0 z-30 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-xl">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25 font-mono font-extrabold text-white text-sm">
+          9291
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[11px] font-mono uppercase tracking-widest text-sky-400 font-bold">SEIA/PR × CELEPAR • FINOPS & AUDITORIA IA</span>
+            <span class="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono font-semibold">Proc. Mãe: 24.574.062-0 (890 fls)</span>
+            <span class="px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-mono font-semibold">Proc. RMEC: 25.609.621-8 (766 fls)</span>
+            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[10px] font-mono font-semibold">GMS 47396/2025</span>
+          </div>
+          <h1 class="text-base sm:text-lg font-bold text-white tracking-tight">
+            Plataforma de Controle e Conciliação Contratual — Planos de Trabalho × Execuções (RMEC) × Cobranças
+          </h1>
+        </div>
+      </div>
+
+      <!-- Ações Rápidas & Status de Referência -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="hidden 2xl:flex items-center gap-3 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+          <div>
+            <span class="text-slate-400">USN:</span>
+            <span class="font-mono font-bold text-sky-400 ml-1">R$ 1,76</span>
+          </div>
+          <span class="text-slate-700">|</span>
+          <div>
+            <span class="text-slate-400">UST:</span>
+            <span class="font-mono font-bold text-indigo-400 ml-1">R$ 309,85</span>
+          </div>
+          <span class="text-slate-700">|</span>
+          <div>
+            <span class="text-slate-400">Indexado:</span>
+            <span class="font-mono font-bold text-emerald-400 ml-1">29 PDFs (3.308 fls)</span>
+          </div>
+        </div>
+        <button onclick="switchTab('vetorial'); triggerDeltaSync();" class="px-3 py-1.5 rounded-lg bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 text-xs font-semibold border border-emerald-500/40 transition flex items-center gap-1.5">
+          <span>🔄</span> Sincronizar PDFs (Delta IA)
+        </button>
+        <a href="../Processo_25.609.621-8_1.pdf" target="_blank" class="px-3 py-1.5 rounded-lg bg-purple-900/40 hover:bg-purple-800/50 text-purple-200 text-xs font-medium border border-purple-500/40 transition">
+          📑 Proc. RMEC (766p)
+        </a>
+        <a href="../Contratoseia_ASSINADO.pdf" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium border border-slate-700 transition">
+          📜 Contrato
+        </a>
+        <button onclick="exportAuditReport()" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold shadow-lg shadow-sky-900/30 transition">
+          🖨️ Imprimir
+        </button>
+      </div>
+    </div>
+
+    <!-- Barra de Navegação dos 8 Módulos Arquiteturais -->
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 border-t border-slate-900/80 bg-slate-950/60 overflow-x-auto">
+      <nav class="flex items-center gap-1 py-1.5 min-w-max">
+        <button data-nav-target="dashboard" class="nav-tab active px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>📊</span> 1. Visão Executiva & Curva S
+        </button>
+        <button data-nav-target="cronologia" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-purple-500/30 bg-purple-950/20">
+          <span>⏱️</span> 2. Fluxo instruções.md (10 Etapas) & Cronologia
+        </button>
+        <button data-nav-target="vetorial" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition border border-emerald-500/30 bg-emerald-950/20">
+          <span>🧠</span> 3. Banco Vetorial IA & Ingestão Delta (Tokens)
+        </button>
+        <button data-nav-target="conciliacao" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>🔍</span> 4. Conciliação PT × OS × Execução (27 OSs)
+        </button>
+        <button data-nav-target="financeiro" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>💳</span> 5. Execução Financeira, RMECs & Faturas
+        </button>
+        <button data-nav-target="auditoria" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>⚖️</span> 6. Achados de Auditoria (14) & IMR
+        </button>
+        <button data-nav-target="simulador" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>🧮</span> 7. Catálogo UST/USN & Simulador
+        </button>
+        <button data-nav-target="documentos" class="nav-tab px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>🗂️</span> 8. Prazos Úteis (SLA) & Autos
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ====================================================================== -->
+  <!-- CONTEÚDO PRINCIPAL (8 VIEWS INTERATIVAS)                               -->
+  <!-- ====================================================================== -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 py-6">
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 1: VISÃO EXECUTIVA & CURVA S                                    -->
+    <!-- ==================================================================== -->
+    <section id="view-dashboard" class="view-section space-y-6">
+      <!-- Banner de Síntese Arquitetural -->
+      <div class="glass-card p-5 border-l-4 border-l-sky-500 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-sky-950/30">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="max-w-4xl">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-sky-400 font-bold">Diagnóstico do Engenheiro Arquiteto de Software • 29 PDFs Indexados (3.308 Páginas)</span>
+            <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">
+              Rastreabilidade Completa em 10 Etapas (<code class="text-purple-300">instruções.md</code>): Processos de OS (27) × Protocolo RMEC (<code class="text-purple-300">25.609.621-8</code>) × Protocolo Mãe (<code class="text-emerald-300">24.574.062-0</code>)
+            </h2>
+            <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+              Com a ingestão integral do <strong>Protocolo de RMEC e Fiscalização (25.609.621-8 — 766 fls.)</strong> somado ao <strong>Processo Mãe (24.574.062-0 — 890 fls.)</strong> e às <strong>27 pastas de OS</strong>, todo o fluxo de 10 etapas está cronologicamente encadeado: identificamos os <strong>8 ciclos mensais (Fev/2026 a Set/2026)</strong>, incluindo a <strong>Devolução/Glosa de Mar/2026 pela SEIA (fls. 86–88)</strong>, o <strong>Atesto com ressalva de LGPD/EUA e exclusão do Projeto Capricorn em Jul/2026 (fls. 551–552)</strong> e o <strong>desmembramento de Set/2026 em 18 OSs somando R$ 3.776.669,52 (fls. 638–766)</strong>.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2 shrink-0">
+            <button onclick="switchTab('cronologia')" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shadow-lg shadow-purple-900/40 transition">
+              Abrir Fluxo 10 Etapas & Cronologia →
+            </button>
+            <button onclick="switchTab('vetorial')" class="px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition">
+              Abrir Banco Vetorial & Ingestão Delta →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 KPI Cards Principais -->
+      <div id="dashboard-kpi-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+
+      <!-- Gráficos Executivos: Curva S (TR vs Real) & Top OSs (PT vs OS Assinada) -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-7 glass-card p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">Curva S Logística (TR Seção 6.2) × Execução Financeira Real (NFs 1353 a 4827)</h3>
+              <p class="text-xs text-slate-400">Monitoramento do Teto do Ano 1 (20% = R$ 26.631.070,42) e evolução mensal do faturamento pago no SIAFIC</p>
+            </div>
+            <span class="badge badge-info">Corte: Out/2026</span>
+          </div>
+          <div class="h-[340px] w-full">
+            <canvas id="chart-curva-s"></canvas>
+          </div>
+        </div>
+
+        <div class="xl:col-span-5 glass-card p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">Assimetria PT/Dimensionamento × Quadro da OS Assinada (R$/mês)</h3>
+              <p class="text-xs text-slate-400">Projetos com orçamento calculado nos autos cujo valor não foi transcrito para a OS</p>
+            </div>
+            <span class="badge badge-warning">Gap Documental</span>
+          </div>
+          <div class="h-[340px] w-full">
+            <canvas id="chart-top-os"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quadro Sinótico das 4 Camadas de Verificação Arquitetural -->
+      <div class="glass-card p-5">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Arquitetura de Verificação em 4 Camadas (Planos de Trabalho × OSs × Execução × Cobrança)</h3>
+            <p class="text-xs text-slate-400">Síntese executiva da situação encontrada nos documentos da pasta <code class="text-sky-300">Contratos/</code> e subpastas <code class="text-sky-300">OS_01</code> a <code class="text-sky-300">OS_27</code></p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 text-xs">
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-amber-500/30">
+            <div class="font-mono font-bold text-amber-300 uppercase mb-1">Camada 1 — Planos de Trabalho & Dim.</div>
+            <div class="text-xl font-bold font-mono text-white mb-2">R$ 8.111.531,56<span class="text-xs font-normal text-slate-400">/mês</span></div>
+            <ul class="space-y-1.5 text-slate-300">
+              <li>• <strong>4.250.254,01 USN/mês</strong> (R$ 7,48M/mês) dimensionados nos autos de 13 processos.</li>
+              <li>• <strong>2.040 UST/mês</strong> (R$ 632,0k/mês) e <strong>2.976 UST únicas</strong> (R$ 922,1k).</li>
+              <li>• <strong>6 processos</strong> (OSs 08, 09, 10, 11, 25 e 27) não possuem Plano de Trabalho específico nos autos.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-sky-500/30">
+            <div class="font-mono font-bold text-sky-300 uppercase mb-1">Camada 2 — Ordens de Serviço Emitidas</div>
+            <div class="text-xl font-bold font-mono text-white mb-2">R$ 2.953.215,74<span class="text-xs font-normal text-slate-400">/mês</span></div>
+            <ul class="space-y-1.5 text-slate-300">
+              <li>• Apenas <strong>6 OSs</strong> (01, 02, 03, 04, 05 e 23) possuem valores preenchidos no corpo da OS.</li>
+              <li>• <strong>OS_06 (Data Foundation)</strong> não possui OS assinada nos autos (R$ 4,32M/mês descobertos).</li>
+              <li>• <strong>OS_03 e OS_04</strong> contêm erros aritméticos graves na multiplicação de USTs.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-indigo-500/30">
+            <div class="font-mono font-bold text-indigo-300 uppercase mb-1">Camada 3 — Execução RMEC (Proc. 25.609.621-8)</div>
+            <div class="text-xl font-bold font-mono text-white mb-2">8 Ciclos RMEC<span class="text-xs font-normal text-slate-400"> (766 fls.)</span></div>
+            <ul class="space-y-1.5 text-slate-300">
+              <li>• <strong>Fev a Ago/2026:</strong> 7 ciclos RMEC atestados pela SEIA (com devolução/glosa em Mar/26 nas fls. 86–88).</li>
+              <li>• <strong>Jul/2026 (fls. 551–552):</strong> SEIA determinou migração de dados dos EUA (LGPD) e exclusão do Projeto Capricorn.</li>
+              <li>• <strong>Set/2026 (fls. 638–766):</strong> 18 OSs desmembradas somando <strong>R$ 3.776.669,52</strong> (aguardando atesto).</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30">
+            <div class="font-mono font-bold text-emerald-300 uppercase mb-1">Camada 4 — Faturamento & Pagamento (NAS/NFS)</div>
+            <div class="text-xl font-bold font-mono text-white mb-2">R$ 14.264.026,78<span class="text-xs font-normal text-slate-400"> pagos + R$ 3,78M em atesto</span></div>
+            <ul class="space-y-1.5 text-slate-300">
+              <li>• <strong>7 Notas Fiscais</strong> liquidadas (8 NLs) e pagas (8 OBs) no SIAFIC após lançamento no GMS pelo NAS.</li>
+              <li>• <strong>8º Ciclo (Set/26):</strong> R$ 3.776.669,52 submetido em 23/10/2026 (total executado atinge <strong>R$ 18.040.696,30</strong>).</li>
+              <li>• <strong>Economia IA:</strong> 3.308 páginas indexadas em SQLite Vetorial com Watermark SHA-256 (Delta Append-Only).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW CRONOLOGIA: FLUXO INSTRUÇÕES.MD (10 ETAPAS) & RAZÃO CRONOLÓGICO  -->
+    <!-- ==================================================================== -->
+    <section id="view-cronologia" class="view-section hidden space-y-6">
+      <!-- Mapa Arquitetural das 10 Etapas do Arquivo instruções.md -->
+      <div class="glass-card p-5 border-l-4 border-l-purple-500 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-purple-950/30">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="text-[11px] font-mono uppercase tracking-wider text-purple-300 font-bold">Roteiro de Auditoria Oficial • Arquivo <code class="text-white">instruções.md</code></span>
+            <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">
+              Checagem Estruturada em 10 Etapas: Da Solicitação do Plano de Trabalho (Etapa 1) ao Arquivamento do Pagamento NAS/NFS (Etapa 10)
+            </h2>
+            <p class="text-xs text-slate-300 mt-1">
+              Todos os eventos foram extraídos dos <strong>29 PDFs (3.308 páginas)</strong> e gravados em um <strong>Event Store Cronológico Imutável (<code class="text-emerald-300">db/contrato_9291.sqlite</code>)</strong>. Clique em qualquer etapa abaixo para filtrar a Linha do Tempo Cronológica.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="filterCronologiaStep('TODAS')" class="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition">
+              Mostrar Todas as 10 Etapas (136 Eventos)
+            </button>
+          </div>
+        </div>
+
+        <!-- Stepper Visual de 10 Etapas -->
+        <div id="instrucoes-10-steps-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+      </div>
+
+      <!-- Matriz dos 8 Ciclos Mensais (Etapas 6 a 10: Processo 25.609.621-8 -> Processo 24.574.062-0) -->
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="badge badge-info">Etapas 6 a 10 de <code class="font-mono">instruções.md</code></span>
+              <span class="text-xs font-mono text-purple-300">Proc. 25.609.621-8_1.pdf (766 fls) ➔ Proc. 24.574.062-0_1.pdf (890 fls)</span>
+            </div>
+            <h3 class="text-base font-bold text-white mt-1">
+              Conciliação Cronológica dos 8 Ciclos Mensais: RMEC por OS ➔ Atesto SEIA ➔ Nota Fiscal ➔ NAS (GMS) ➔ NFS (Pagamento SIAFIC)
+            </h3>
+            <p class="text-xs text-slate-400">
+              Clique em <strong>"Ver Quebra por OS"</strong> em qualquer mês para inspecionar o consumo individual de USN e UST de cada Ordem de Serviço e abrir a página exata do RMEC ou do Atesto SEIA.
+            </p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900/95 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                <th class="py-3 px-3">Competência</th>
+                <th class="py-3 px-3">Etapa 6A: Submissão RMEC (25.609.621-8)</th>
+                <th class="py-3 px-3">Consumo Medido (USN + UST)</th>
+                <th class="py-3 px-3">Etapa 6B: Atesto Técnico SEIA</th>
+                <th class="py-3 px-3">Etapa 7: NFS-e (24.574.062-0)</th>
+                <th class="py-3 px-3">Etapa 8: NAS ➔ GMS</th>
+                <th class="py-3 px-3">Etapa 9: NFS Pagamento (NL/OB)</th>
+                <th class="py-3 px-3 text-right">Detalhamento por OS</th>
+              </tr>
+            </thead>
+            <tbody id="rmec-cycles-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Checklist das Etapas 1 a 5 por Ordem de Serviço (27 OSs) -->
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <span class="badge badge-warning">Etapas 1 a 5 de <code class="font-mono">instruções.md</code></span>
+            <h3 class="text-base font-bold text-white mt-1">
+              Rastreamento Cronológico por Ordem de Serviço (OS_01 a OS_27): Solicitação + PT ➔ Encaminhamento SEIA ➔ Custos CELEPAR ➔ Emissão OS ➔ Início Execução
+            </h3>
+            <p class="text-xs text-slate-400">
+              Verificação individualizada das 5 primeiras etapas em cada uma das 27 pastas de Ordem de Serviço, com datas e páginas exatas dos autos.
+            </p>
+          </div>
+          <input
+            type="text"
+            placeholder="Filtrar OS, órgão ou projeto..."
+            oninput="filterSteps1To5Table(this.value)"
+            class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-purple-500 w-64"
+          />
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[520px] overflow-y-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 z-10">
+              <tr class="bg-slate-900 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                <th class="py-2.5 px-3">OS / Projeto</th>
+                <th class="py-2.5 px-3">Etapa 1: Solicitação + PT & Cronograma</th>
+                <th class="py-2.5 px-3">Etapa 2: SEIA ➔ CELEPAR (Custos)</th>
+                <th class="py-2.5 px-3">Etapa 3: Retorno Custos CELEPAR</th>
+                <th class="py-2.5 px-3">Etapa 4: Emissão da OS pela SEIA</th>
+                <th class="py-2.5 px-3">Etapa 5: Confirmação Início / Execução</th>
+                <th class="py-2.5 px-3 text-right">Autos</th>
+              </tr>
+            </thead>
+            <tbody id="os-steps-1to5-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Razão Cronológico Imutável (Event Store — 136 Eventos Auditados) -->
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <span class="badge badge-success">Event Store SQLite • Ordem Cronológica Estrita</span>
+            <h3 class="text-base font-bold text-white mt-1">
+              Linha do Tempo Cronológica Unificada (Todos os Eventos de Todos os Processos)
+            </h3>
+            <p class="text-xs text-slate-400">
+              Consulte todos os marcos administrativos, técnicos e financeiros em ordem cronológica exata (<code class="text-emerald-300">YYYY-MM-DD</code>), cruzando os protocolos <code class="text-sky-300">24.574.062-0</code>, <code class="text-purple-300">25.609.621-8</code> e as 27 OSs.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="crono-filter-step" onchange="renderChronologicalTimeline()" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white">
+              <option value="TODAS">Todas as Etapas (1 a 10)</option>
+              <option value="1">Etapa 1: Solicitação + Plano de Trabalho</option>
+              <option value="2">Etapa 2: Encaminhamento SEIA ➔ CELEPAR</option>
+              <option value="3">Etapa 3: Retorno de Custos CELEPAR</option>
+              <option value="4">Etapa 4: Emissão da Ordem de Serviço (SEIA)</option>
+              <option value="5">Etapa 5: Confirmação de Início / Execução</option>
+              <option value="6">Etapa 6: RMEC Mensal & Atesto Técnico SEIA</option>
+              <option value="7">Etapa 7: Juntada NF + Atesto ➔ Envio ao NAS</option>
+              <option value="8">Etapa 8: NAS lança no GMS ➔ Envia ao NFS</option>
+              <option value="9">Etapa 9: NFS realiza Pagamento (NL/PD/OB) ➔ NAS</option>
+              <option value="10">Etapa 10: Fechamento e Abertura de Novo Ciclo</option>
+            </select>
+            <select id="crono-filter-os" onchange="renderChronologicalTimeline()" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white">
+              <option value="TODAS">Todas as OSs / Global</option>
+            </select>
+            <select id="crono-sort-dir" onchange="renderChronologicalTimeline()" class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-sky-300 font-mono">
+              <option value="ASC">Ordem: Mais Antigo ➔ Mais Recente (Cronológica)</option>
+              <option value="DESC">Ordem: Mais Recente ➔ Mais Antigo (Reversa)</option>
+            </select>
+            <input
+              id="crono-filter-search"
+              type="text"
+              placeholder="Buscar data, NF, protocolo, valor..."
+              oninput="renderChronologicalTimeline()"
+              class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white w-56"
+            />
+          </div>
+        </div>
+
+        <div id="crono-summary-counter" class="text-xs font-mono text-slate-400 mb-3"></div>
+        <div id="chronological-timeline-list" class="space-y-2.5 max-h-[680px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW VETORIAL: BANCO VETORIAL IA & INGESTÃO INCREMENTAL DELTA        -->
+    <!-- ==================================================================== -->
+    <section id="view-vetorial" class="view-section hidden space-y-6">
+      <!-- Parecer do Arquiteto de Software: Como Guardar Dados Cronológicos + Economizar Tokens com Ingestão Delta -->
+      <div class="glass-card p-5 border-l-4 border-l-emerald-500 bg-gradient-to-r from-slate-900/95 via-slate-900/90 to-emerald-950/30">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+          <div class="max-w-4xl space-y-2">
+            <span class="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold">Arquitetura de Persistência Híbrida • Event Store Cronológico + Vector DB + Watermark SHA-256</span>
+            <h2 class="text-base sm:text-lg font-bold text-white">
+              Solução Implementada: Banco Híbrido (<code class="text-emerald-300">db/contrato_9291.sqlite</code>) com Ingestão Incremental Append-Only (Economia de 100% dos Tokens nas Páginas Anteriores)
+            </h2>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Como os processos do <strong>e-Protocolo Paraná</strong> são <strong>estritamente cumulativos (append-only)</strong> — isto é, quando você baixa um PDF atualizado, as páginas <code class="text-sky-300">1..N</code> permanecem intactas e apenas as novas páginas <code class="text-emerald-300">N+1..M</code> são anexadas ao final — implementamos uma arquitetura em <strong>3 camadas acopladas</strong> no arquivo local <code class="text-emerald-300">c:\ProgsAntigravity\Contratos\db\contrato_9291.sqlite</code>:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
+              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div class="font-mono font-bold text-emerald-300 mb-1">1. Watermark SHA-256 por Página (Delta)</div>
+                <p class="text-slate-300 text-[11px] leading-relaxed">
+                  A tabela <code class="text-white">document_watermarks</code> guarda <code class="text-emerald-300">last_ingested_page (N)</code> e o hash <code class="text-emerald-300">SHA-256</code> da página <code class="text-white">1</code> e da página <code class="text-white">N</code> de cada PDF. Ao atualizar os arquivos, o motor valida o hash da página <code class="text-white">N</code> em <strong class="text-white">0,02s</strong> e processa com IA/Embeddings <strong class="text-emerald-300">somente da página N+1 até M</strong>.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div class="font-mono font-bold text-purple-300 mb-1">2. Event Store Cronológico (<code class="text-white">B-Tree</code>)</div>
+                <p class="text-slate-300 text-[11px] leading-relaxed">
+                  A tabela <code class="text-white">chronological_events</code> armazena cada marco das 10 etapas com data normalizada <code class="text-purple-300">ISO-8601 (YYYY-MM-DD)</code> e índice composto <code class="text-white">(event_date ASC, step_number ASC)</code>, garantindo consulta cronológica instantânea sem reprocessar texto.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div class="font-mono font-bold text-sky-300 mb-1">3. Vector Store + Cache IA por Página</div>
+                <p class="text-slate-300 text-[11px] leading-relaxed">
+                  A tabela <code class="text-white">vector_chunks</code> guarda para cada uma das <strong class="text-white">3.308 páginas</strong> o embedding vetorial normalizado (384 dims), o resumo pré-extraído pela IA (<code class="text-sky-300">ai_summary</code>) e as entidades JSON (valores R$, NFs, USN, UST, datas).
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2 shrink-0">
+            <button id="btn-run-delta-sync" onclick="triggerDeltaSync()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 transition flex items-center gap-2">
+              <span>🔄</span> Executar Sincronização Delta Agora
+            </button>
+            <div id="delta-sync-last-badge" class="text-[11px] font-mono text-center text-emerald-300 bg-emerald-950/50 border border-emerald-500/30 rounded-lg py-1 px-2">
+              Status: 3.308 páginas em cache (100% sincronizado)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs de Economia de Tokens & Status do Banco Vetorial -->
+      <div id="vector-db-kpi-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+
+      <!-- Resultado Ao Vivo da Sincronização Incremental Delta -->
+      <div id="delta-sync-live-banner" class="hidden glass-card p-4 border border-emerald-500/40 bg-emerald-950/20"></div>
+
+      <!-- Motor de Busca Semântica e Híbrida no Banco Vetorial (3.308 Páginas) -->
+      <div class="glass-card p-5 border-sky-500/30">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <span class="badge badge-info">Busca Vetorial Híbrida (Cosine Similarity + Entidades Extraídas em Cache)</span>
+            <h3 class="text-base font-bold text-white mt-1">
+              Pesquisa Inteligente Instantânea nas 3.308 Páginas Indexadas (Zero Consumo de Tokens por Consulta)
+            </h3>
+            <p class="text-xs text-slate-400">
+              Consulte qualquer assunto técnico, financeiro ou jurídico nos 29 PDFs. O motor combina similaridade de cosseno vetorial (384d) com os resumos de IA já salvos no SQLite.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-3">
+          <input
+            id="vector-search-input"
+            type="text"
+            value="glosa devolução RMEC março erro soma atas duplicadas"
+            placeholder="Digite sua pergunta ou termos para buscar no banco vetorial..."
+            onkeydown="if(event.key==='Enter') runVectorSearch()"
+            class="flex-1 min-w-[260px] px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-500"
+          />
+          <select id="vector-search-os-filter" onchange="runVectorSearch()" class="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white">
+            <option value="">Todos os 29 PDFs (3.308 págs)</option>
+            <option value="PROC_RMEC">Apenas Proc. RMEC 25.609.621-8 (766 págs)</option>
+            <option value="PROC_MAE">Apenas Proc. Mãe 24.574.062-0 (890 págs)</option>
+          </select>
+          <button onclick="runVectorSearch()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition">
+            🔎 Buscar no Vector DB
+          </button>
+        </div>
+
+        <!-- Sugestões Rápidas de Consulta Vetorial -->
+        <div class="flex flex-wrap items-center gap-1.5 mb-4 text-[11px]">
+          <span class="text-slate-400 font-semibold mr-1">Consultas Prontas:</span>
+          <button onclick="setVectorQuery('glosa devolução RMEC março erro soma atas duplicadas')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-sky-300 transition">
+            Glosa RMEC Março/26 (fls. 86–88)
+          </button>
+          <button onclick="setVectorQuery('transferência internacional dados EUA us-central1 LGPD Capricorn')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-rose-300 transition">
+            Alerta LGPD EUA & Projeto Capricorn (Jul/26)
+          </button>
+          <button onclick="setVectorQuery('relatório fechamento setembro 2026 3.776.669,52 desmembramento')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-purple-300 transition">
+            Fechamento Set/26 (18 OSs — R$ 3,77M)
+          </button>
+          <button onclick="setVectorQuery('liberação ambiente produção imediata sem dimensionamento')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 transition">
+            Produção Liberada s/ Orçamento (OS 24–27)
+          </button>
+          <button onclick="setVectorQuery('Nota de Liquidação Ordem Bancária SIAFIC pagamento NFS NAS')" class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 transition">
+            Pagamentos SIAFIC (NL / PD / OB)
+          </button>
+        </div>
+
+        <div id="vector-search-results" class="space-y-2.5 max-h-[540px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- Tabela de Watermarks SHA-256 por Documento (Controle de Ingestão Incremental Append-Only) -->
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <span class="badge badge-success">Tabela <code class="font-mono">document_watermarks</code> • Controle de Páginas Processadas</span>
+            <h3 class="text-base font-bold text-white mt-1">
+              Monitor de Marcas d'Água Criptográficas (SHA-256) dos 29 PDFs Monitorados
+            </h3>
+            <p class="text-xs text-slate-400">
+              Quando você substituir qualquer PDF na pasta por uma versão mais recente do e-Protocolo, o motor verificará o <code class="text-emerald-300">SHA-256 da Última Página Ingerida (N)</code> e aplicará IA apenas nas páginas novas (<code class="text-emerald-300">N+1..M</code>).
+            </p>
+          </div>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-800 max-h-[480px] overflow-y-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 z-10">
+              <tr class="bg-slate-900 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                <th class="py-2.5 px-3">ID Doc</th>
+                <th class="py-2.5 px-3">Arquivo PDF Monitorado</th>
+                <th class="py-2.5 px-3">Tipo</th>
+                <th class="py-2.5 px-3">Última Pág. Ingerida (Watermark N)</th>
+                <th class="py-2.5 px-3">SHA-256 Pág. 1 (Integridade Base)</th>
+                <th class="py-2.5 px-3">SHA-256 Pág. N (Ponto de Retomada Delta)</th>
+                <th class="py-2.5 px-3">Tokens Economizados no Próximo Sync</th>
+                <th class="py-2.5 px-3 text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody id="watermarks-table-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 2: MATRIZ DE CONCILIAÇÃO DAS 27 ORDENS DE SERVIÇO               -->
+    <!-- ==================================================================== -->
+    <section id="view-conciliacao" class="view-section hidden space-y-5">
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white">Matriz de Conciliação em 4 Camadas — Todas as 27 Ordens de Serviço (OS_01 a OS_27)</h2>
+            <p class="text-xs text-slate-400">Conferência cruzada entre Plano de Trabalho/SOW/Dimensionamento (Camada 1), OS Assinada (Camada 2), Execução Técnica/GCP (Camada 3) e Faturamento/Auditoria (Camada 4)</p>
+          </div>
+        </div>
+
+        <!-- Barra de Filtros Multi-Critério -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Buscar OS, Projeto, Órgão ou Protocolo</label>
+            <input
+              type="text"
+              placeholder="Ex: JACA, OS_06, 25.284.492-9, SEFA..."
+              oninput="filterConciliacao('search', this.value)"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-500"
+            />
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Filtrar por Órgão Demandante</label>
+            <select
+              id="filter-os-orgao"
+              onchange="filterConciliacao('orgao', this.value)"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-500"
+            >
+              <option value="TODOS">Todos os Órgãos (27 OSs)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Filtrar por Severidade de Auditoria</label>
+            <select
+              onchange="filterConciliacao('severidade', this.value)"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-500"
+            >
+              <option value="TODAS">Todas as Severidades</option>
+              <option value="CRÍTICA">Apenas Críticas</option>
+              <option value="ALTA">Apenas Altas</option>
+              <option value="MÉDIA">Apenas Médias</option>
+              <option value="BAIXA">Apenas Baixas</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-slate-400 block mb-1">Filtrar por Situação de Conciliação</label>
+            <select
+              onchange="filterConciliacao('tipo', this.value)"
+              class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-500"
+            >
+              <option value="TODOS">Todas as Situações</option>
+              <option value="DIVERGENCIA_VALOR">Divergência Financeira PT × OS (Erros/Omissões)</option>
+              <option value="SEM_ORCAMENTO_OS">OS Emitida sem Tabela de Valor R$ (20 OSs)</option>
+              <option value="DESMEMBRAMENTO">Desmembramento Contábil da OS_06 (Data Foundation)</option>
+              <option value="BLOQUEIO">Com Bloqueio de Produção Ativo (OS_07, 20, 22)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Faixa Resumo Dinâmica -->
+        <div id="conciliacao-summary-bar" class="p-3 rounded-xl bg-slate-950/90 border border-slate-800 mb-4"></div>
+
+        <!-- Tabela de Alta Densidade -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900/95 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                <th class="py-3 px-3">OS</th>
+                <th class="py-3 px-3">Projeto / Órgão / Protocolo</th>
+                <th class="py-3 px-3">Camada 1: PT & Dim. Inicial</th>
+                <th class="py-3 px-3">Camada 2: OS Assinada</th>
+                <th class="py-3 px-3">Camada 3: Execução & GCP</th>
+                <th class="py-3 px-3">Camada 4: Diagnóstico</th>
+                <th class="py-3 px-3 text-right">Autos & Inspeção</th>
+              </tr>
+            </thead>
+            <tbody id="conciliacao-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 3: EXECUÇÃO FINANCEIRA, EMPENHOS & CONCILIADOR DE FATURAS       -->
+    <!-- ==================================================================== -->
+    <section id="view-financeiro" class="view-section hidden space-y-6">
+      <!-- Empenhos (NE) -->
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h2 class="text-base font-bold text-white">Controle de Notas de Empenho (SIAFIC — Dotação 6102.04.122.42.8012)</h2>
+            <p class="text-xs text-slate-400">Rastreamento integral dos empenhos emitidos no Processo Mãe 24.574.062-0 e Processo de Suplementação 26.551.047-7</p>
+          </div>
+          <span class="badge badge-success">Limite Ano 1 (20%): R$ 26.631.070,42</span>
+        </div>
+        <div id="ne-cards-container" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Ledger Completo das 7 Notas Fiscais, 8 NLs e 8 OBs -->
+      <div class="glass-card p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Razão Analítico de Faturamento, Liquidação e Pagamento (7 NFS-e | 8 NLs | 8 OBs — Total: R$ 14.264.026,78)</h3>
+            <p class="text-xs text-slate-400">Dados extraídos das fls. 1470 a 1613 do Processo 24.574.062-0. Clique no botão da última coluna para abrir a página exata da Nota Fiscal no PDF.</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900/95 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                <th class="py-3 px-3">Nota Fiscal / Comp.</th>
+                <th class="py-3 px-3">Anexo SIGA / Período</th>
+                <th class="py-3 px-3">Consumo USN (@ R$ 1,76)</th>
+                <th class="py-3 px-3">Serviços UST (@ R$ 309,85)</th>
+                <th class="py-3 px-3">Valor Total NF</th>
+                <th class="py-3 px-3">Atesto, Liquidação (NL) e Pagamento (OB)</th>
+                <th class="py-3 px-3">Auditoria da Cobrança</th>
+                <th class="py-3 px-3 text-right">Página nos Autos</th>
+              </tr>
+            </thead>
+            <tbody id="nf-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Simulador de Conciliação de Fatura Mensal (Validador de Atesto) -->
+      <div class="glass-card p-5 border-indigo-500/30">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-sm font-bold text-white">Validador de Cobrança Mensal & Gerador de Despacho de Liquidação (NF × Anexo SIGA × OSs)</h3>
+            <p class="text-xs text-slate-400">Selecione uma das 7 Notas Fiscais reais ou digite os dados de uma nova fatura para conferir o fechamento matemático e emitir o parecer de fiscalização</p>
+          </div>
+          <select
+            id="reconciler-nf-preset"
+            class="px-3 py-1.5 rounded-lg bg-slate-900 border border-indigo-500/40 text-xs text-sky-300 font-mono"
+          >
+            <option value="4827">Carregar NFS-e 4827 (Ago/26 — R$ 3.559.565,67)</option>
+            <option value="4336">Carregar NFS-e 4336 (Jul/26 — R$ 2.771.812,42)</option>
+            <option value="3486">Carregar NFS-e 3486 (Jun/26 — R$ 3.789.740,71)</option>
+            <option value="3300">Carregar NFS-e 3300 (Mai/26 — R$ 2.138.486,79)</option>
+            <option value="3008">Carregar NFS-e 3008 (Abr/26 — R$ 1.290.224,57)</option>
+            <option value="2275">Carregar NFS-e 2275 (Mar/26 — R$ 479.074,22)</option>
+            <option value="1353">Carregar NFS-e 1353 (Fev/26 — R$ 235.122,40)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Identificação da Fatura</label>
+            <input id="rec-nf-numero" type="text" value="NFS-e 4827 (Agosto/2026)" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Valor Bruto da NF (R$)</label>
+            <input id="rec-valor-nf" type="number" step="0.01" value="3559565.67" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Qtd. USN no Anexo SIGA</label>
+            <input id="rec-usn-siga" type="number" step="0.01" value="1936567.54" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Qtd. UST no Anexo SIGA</label>
+            <input id="rec-ust-siga" type="number" step="0.01" value="488.00" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white font-mono" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Nível de Detalhamento SIGA/RMEC</label>
+            <select id="rec-tem-siga" onchange="document.getElementById('btn-run-invoice-reconciler').click()" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-xs text-white">
+              <option value="SIM_GLOBAL">Anexo SIGA Global (Sem quebra por OS)</option>
+              <option value="NAO">Sem Anexo SIGA nos Autos</option>
+              <option value="SIM_POR_OS">Anexo SIGA Analítico por OS + RMEC</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-run-invoice-reconciler" class="hidden">Recalcular</button>
+        <div id="invoice-reconciler-output"></div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 4: AUDITORIA DE CONFORMIDADE (14 ACHADOS) & IMR/GLOSAS          -->
+    <!-- ==================================================================== -->
+    <section id="view-auditoria" class="view-section hidden space-y-6">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <!-- Coluna Esquerda: Os 14 Achados de Auditoria -->
+        <div class="xl:col-span-8 space-y-4">
+          <div class="glass-card p-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-bold text-white">Relatório de Achados de Auditoria Arquitetural e Financeira (14 Achados)</h2>
+              <p class="text-xs text-slate-400">Inconformidades documentadas com referência exata às páginas dos processos e dispositivos da Lei 14.133/2021 e do TR</p>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="filterAuditoria('TODAS')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-white font-semibold">Todas (14)</button>
+              <button onclick="filterAuditoria('CRÍTICA')" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-xs text-rose-300 font-semibold">Críticas (6)</button>
+              <button onclick="filterAuditoria('ALTA')" class="px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-xs text-amber-300 font-semibold">Altas (7)</button>
+            </div>
+          </div>
+
+          <div id="auditoria-achados-grid" class="space-y-4"></div>
+        </div>
+
+        <!-- Coluna Direita: Calculadora Interativa de IMR & Glosas (TR Seção 8 e 11.3) -->
+        <div class="xl:col-span-4 space-y-4">
+          <div class="glass-card p-5 sticky top-28 border-rose-500/30">
+            <div class="flex items-center justify-between mb-3">
+              <span class="badge badge-danger">IMR — Seções 8 e 11.3 do TR</span>
+              <span class="font-mono text-xs text-slate-400">Simulador de Retenção</span>
+            </div>
+            <h3 class="text-sm font-bold text-white mb-1">Calculadora de Glosas e Nível de Serviço (IMR)</h3>
+            <p class="text-xs text-slate-400 mb-4">Calcule o desconto exato sobre a fatura mensal em caso de indisponibilidade GCP, atraso de orçamento/RMEC ou cobrança de UST sem evidência.</p>
+
+            <div class="space-y-3 text-xs mb-4">
+              <div>
+                <label class="text-slate-300 block mb-1">Valor Bruto da Fatura sob Análise (R$)</label>
+                <input id="imr-valor-fatura" type="number" step="0.01" value="3559565.67" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-slate-300 block mb-1">Parcela de UST Mensal na Fatura (R$)</label>
+                <input id="imr-valor-ust-os" type="number" step="0.01" value="151206.80" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-slate-300 block mb-1">Disponibilidade GCP (%)</label>
+                  <input id="imr-uptime" type="number" step="0.05" value="99.20" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+                </div>
+                <div>
+                  <label class="text-slate-300 block mb-1">Dias Úteis Orçamento OS</label>
+                  <input id="imr-atraso-orcamento" type="number" value="14" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="text-slate-300 block mb-1">Dias Atraso Entrega RMEC</label>
+                  <input id="imr-atraso-rmec" type="number" value="5" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+                </div>
+                <div>
+                  <label class="text-slate-300 block mb-1">UST Glosada s/ Evidência</label>
+                  <input id="imr-ust-sem-evidencia" type="number" step="1" value="156" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+                </div>
+              </div>
+            </div>
+
+            <div id="imr-calculator-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 5: CATÁLOGO UST/USN & SIMULADOR DE DIMENSIONAMENTO              -->
+    <!-- ==================================================================== -->
+    <section id="view-simulador" class="view-section hidden space-y-6">
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <!-- Catálogo Oficial UST (Anexo II do TR) -->
+        <div class="xl:col-span-7 glass-card p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-white">Catálogo Oficial de Serviços Técnicos — UST (Anexo II do TR, pp. 61–67)</h2>
+              <p class="text-xs text-slate-400">Valor unitário contratual fixo: <strong class="text-indigo-300 font-mono">R$ 309,85 / UST</strong> • Teto global: <strong class="font-mono text-white">42.984 UST (R$ 13.318.592,40)</strong></p>
+            </div>
+            <a href="../TR_CONTRATO_9291.pdf#page=61" target="_blank" class="px-3 py-1.5 rounded-lg bg-indigo-600/30 border border-indigo-500/40 text-indigo-300 text-xs font-semibold">
+              Abrir Anexo II no TR ↗
+            </a>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-800 mb-4">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-900/95 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                  <th class="py-2.5 px-3">Código</th>
+                  <th class="py-2.5 px-3">Família</th>
+                  <th class="py-2.5 px-3">Oferta de Serviço</th>
+                  <th class="py-2.5 px-3">Tipo</th>
+                  <th class="py-2.5 px-3">UST Base</th>
+                  <th class="py-2.5 px-3">Valor Base (1x)</th>
+                  <th class="py-2.5 px-3">Entregáveis Obrigatórios p/ Atesto</th>
+                </tr>
+              </thead>
+              <tbody id="catalogo-ust-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="font-bold text-sky-300 mb-1">Combo Padrão Mensal (1x)</div>
+              <div class="font-mono text-sm font-bold text-white">244 UST/mês = R$ 75.603,40</div>
+              <p class="text-[11px] text-slate-400 mt-1">Soma de <code class="text-sky-300">GES_PROJ_004</code> (88 UST) + <code class="text-sky-300">GCP_DEV_003</code> (156 UST). Usado nas OSs 01, 03, 04 e 18.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="font-bold text-amber-300 mb-1">Combo Único Só Gestão (1x)</div>
+              <div class="font-mono text-sm font-bold text-white">208 UST = R$ 64.448,80</div>
+              <p class="text-[11px] text-slate-400 mt-1">Soma de <code class="text-amber-300">GES_PROJ_001+002+003+005</code> (16+32+128+32). Usado nas OSs 01 e 04.</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div class="font-bold text-emerald-300 mb-1">Combo Único Completo (1x)</div>
+              <div class="font-mono text-sm font-bold text-white">688 UST = R$ 213.176,80</div>
+              <p class="text-[11px] text-slate-400 mt-1">Soma Gestão (208 UST) + Dev GCP (<code class="text-emerald-300">96 + 384 = 480 UST</code>). Usado na OS_03 (com erro aritmético na OS).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Simulador "Anti-Erro OS_03 / OS_04" -->
+        <div class="xl:col-span-5 glass-card p-5 border-sky-500/30">
+          <div class="flex items-center justify-between mb-3">
+            <span class="badge badge-info">Validador Matemático Oficial</span>
+            <span class="font-mono text-xs text-slate-400">Prevenção de Erros em OS</span>
+          </div>
+          <h3 class="text-sm font-bold text-white mb-1">Simulador de Dimensionamento & Auditoria de OS</h3>
+          <p class="text-xs text-slate-400 mb-4">Simule uma nova Ordem de Serviço ou selecione uma OS real para auditar automaticamente se os valores impressos na OS batem com o Catálogo do TR.</p>
+
+          <div class="space-y-3 text-xs mb-4">
+            <div>
+              <label class="text-slate-300 font-semibold block mb-1">Comparar com Ordem de Serviço Emitida (Auditoria Instantânea):</label>
+              <select id="sim-compare-os" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-sky-500/40 text-sky-300 font-mono">
+                <option value="OS_03">Auditar OS_03 (PCP Sistrânsito — Detecta Erro R$ 48k/mês e R$ 128k único)</option>
+                <option value="OS_04">Auditar OS_04 (PMPR Intranet IA — Detecta Erro 732 UST vs 244 UST)</option>
+                <option value="OS_01">Auditar OS_01 (CEASA Projeto J.A.C.A. — 58.459,38 USN)</option>
+                <option value="OS_18">Auditar OS_18 (Defesa Civil PRISMA — Valor omitido na OS)</option>
+                <option value="CUSTOM">Simulação Livre (Nova Ordem de Serviço)</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label class="text-slate-300 block mb-1">Consumo Mensal (USN)</label>
+                <input id="sim-usn-mensal" type="number" step="0.01" value="145655.10" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+              </div>
+              <div>
+                <label class="text-slate-300 block mb-1">Fator Entidades (Gestão)</label>
+                <select id="sim-entidades" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono">
+                  <option value="1.0">1.0x (1 a 3 órgãos)</option>
+                  <option value="1.5">1.5x (4 a 6 órgãos)</option>
+                  <option value="2.0">2.0x (7+ órgãos)</option>
+                  <option value="3.0">3.0x (Porte Grande)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-slate-300 block mb-1">Complexidade Dev GCP</label>
+                <select id="sim-complexidade" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono">
+                  <option value="1.0">1.0x (Padrão Base)</option>
+                  <option value="1.5">1.5x (Média Complex.)</option>
+                  <option value="2.5">2.5x (Alta Complex.)</option>
+                  <option value="3.0">3.0x (Data Foundation)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-slate-300 font-semibold block mb-1.5">Ofertas do Catálogo Ativas na OS:</label>
+              <div class="grid grid-cols-2 gap-1.5 bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GES_PROJ_001" checked /> GES_PROJ_001 (16 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GES_PROJ_002" checked /> GES_PROJ_002 (32 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GES_PROJ_003" checked /> GES_PROJ_003 (128 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GES_PROJ_004" checked /> GES_PROJ_004 (88 UST Mensal)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GES_PROJ_005" checked /> GES_PROJ_005 (32 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GCP_DEV_001" checked /> GCP_DEV_001 (96 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GCP_DEV_002" checked /> GCP_DEV_002 (384 UST Única)</label>
+                <label class="flex items-center gap-2 text-slate-300"><input type="checkbox" class="sim-oferta-check accent-sky-500" value="GCP_DEV_003" checked /> GCP_DEV_003 (156 UST Mensal)</label>
+              </div>
+            </div>
+          </div>
+
+          <div id="ust-simulator-output"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================================== -->
+    <!-- VIEW 6: CONTROLE DE PRAZOS ÚTEIS (SLA) & REPOSITÓRIO DE AUTOS        -->
+    <!-- ==================================================================== -->
+    <section id="view-documentos" class="view-section hidden space-y-6">
+      <!-- Calculadora de Prazos em Dias Úteis + Tabela SLA -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div class="xl:col-span-4 glass-card p-5">
+          <span class="badge badge-info mb-2">Contagem em Dias Úteis (Lei 14.133/2021)</span>
+          <h3 class="text-sm font-bold text-white mb-1">Calculadora de Prazos Regulamentares do TR</h3>
+          <p class="text-xs text-slate-400 mb-4">Calcule o vencimento legal para entrega de Dimensionamento Inicial pela Celepar, RMEC ou Atesto de Nota Fiscal.</p>
+
+          <div class="space-y-3 text-xs mb-4">
+            <div>
+              <label class="text-slate-300 block mb-1">Data do Evento Inicial (Ofício / Protocolo / NF):</label>
+              <input id="sla-start-date" type="date" value="2026-10-13" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono" />
+            </div>
+            <div>
+              <label class="text-slate-300 block mb-1">Regra Contratual (Termo de Referência):</label>
+              <select id="sla-rule-type" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-white">
+                <option value="10">Entrega de Dimensionamento Inicial pela Celepar (10 dias úteis)</option>
+                <option value="5">Atesto Técnico de Fatura / Entrega RMEC (5 dias úteis)</option>
+                <option value="15">Prazo Máximo c/ Prorrogação de Orçamento (15 dias úteis)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="sla-deadline-output"></div>
+        </div>
+
+        <div class="xl:col-span-8 glass-card p-5">
+          <h3 class="text-sm font-bold text-white mb-1">Matriz de Indicadores de Nível de Serviço (SLA) e Conformidade Verificada</h3>
+          <p class="text-xs text-slate-400 mb-4">Confronto entre as obrigações do Termo de Referência e a realidade documental auditada nos 28 processos</p>
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-900/95 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+                  <th class="py-2.5 px-3">SLA</th>
+                  <th class="py-2.5 px-3">Etapa</th>
+                  <th class="py-2.5 px-3">Obrigação Contratual</th>
+                  <th class="py-2.5 px-3">Prazo / Meta</th>
+                  <th class="py-2.5 px-3">Sanção / Glosa Prevista</th>
+                  <th class="py-2.5 px-3">Situação Auditada nos Autos</th>
+                </tr>
+              </thead>
+              <tbody id="sla-rules-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documentos Estruturantes -->
+      <div>
+        <h3 class="text-base font-bold text-white mb-3">Peças Estruturantes do Contrato nº 9291/2025 (Acesso Direto aos Arquivos da Pasta)</h3>
+        <div id="estruturantes-docs-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Diretório Completo das 27 Pastas de OS -->
+      <div class="glass-card p-5">
+        <h3 class="text-sm font-bold text-white mb-1">Diretório Rápido dos 27 Processos de Ordem de Serviço (<code class="text-sky-400">Ordens_De_Serviço/OS_01</code> a <code class="text-sky-400">OS_27</code>)</h3>
+        <p class="text-xs text-slate-400 mb-4">Acesso instantâneo ao arquivo PDF da Ordem de Serviço (<code class="text-slate-300">OS</code>) e à íntegra do Processo Administrativo e-Protocolo (<code class="text-slate-300">Proc.</code>)</p>
+        <div id="os-docs-quick-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ====================================================================== -->
+  <!-- DRAWER LATERAL DE INSPEÇÃO PROFUNDA DE OS (4 CAMADAS)                  -->
+  <!-- ====================================================================== -->
+  <div id="os-drawer-backdrop" onclick="closeOSDrawer()" class="fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-40 hidden"></div>
+  <aside
+    id="os-detail-drawer"
+    class="fixed top-0 right-0 h-full w-full max-w-3xl bg-slate-950 border-l border-slate-800 z-50 transform translate-x-full transition-transform duration-300 ease-in-out overflow-y-auto p-6 shadow-2xl"
+  >
+    <div id="os-drawer-content"></div>
+  </aside>
+
+  <!-- ====================================================================== -->
+  <!-- RODAPÉ TÉCNICO                                                         -->
+  <!-- ====================================================================== -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500 mt-10">
+    Plataforma de Controle e Auditoria FinOps • Contrato Administrativo nº 9291/2025 (SEIA/PR × CELEPAR) • Dados auditados integralmente a partir dos autos oficiais (e-Protocolo 24.574.062-0 e OS_01 a OS_27).
+  </footer>
+
+  <!-- Scripts da Plataforma -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
