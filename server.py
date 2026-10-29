@@ -7,7 +7,7 @@ import subprocess
 import urllib.parse
 import ingest_engine
 
-PORT = 8092
+PORT = int(os.environ.get("PORT", 8092))
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -41,6 +41,10 @@ class ContractPlatformHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         query = urllib.parse.parse_qs(parsed.query)
+
+        if parsed.path == "/healthz":
+            self._send_json({"ok": True, "status": "healthy"})
+            return
 
         if parsed.path in ("/", "/index.html"):
             self.send_response(302)

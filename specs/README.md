@@ -16,6 +16,7 @@ Este diretório adota a metodologia **SDD (Spec-Driven Development / Spec-Kit)**
 | [`03-api-server.spec.md`](./03-api-server.spec.md) | **Servidor HTTP/REST (`server.py`)** | Especificação dos endpoints REST (`/api/status`, `/api/vector-search`, `/api/ingest-delta`, `/api/timeline`), contratos JSON e tratamento de erros |
 | [`04-audit-control-platform.spec.md`](./04-audit-control-platform.spec.md) | **Plataforma Web UI/UX** | Especificação das 9 abas da interface analítica, KPIs executivos, matriz das 27 OS, conciliação SIGA/RMEC e simuladores IMR/UST/SLA |
 | [`05-sdd-changelog-reversibilidade.spec.md`](./05-sdd-changelog-reversibilidade.spec.md) | **Rastreabilidade & Rollback Git** | Matriz de rastreabilidade `Spec <-> Commit/Tag Git`, histórico cronológico de todas as alterações e guia prático de reversão (`reverter.bat`) |
+| [`06-cloud-run-deploy.spec.md`](./06-cloud-run-deploy.spec.md) | **Deploy Google Cloud Run** | Containerização Docker (`Dockerfile`, `.dockerignore`, `requirements.txt`), porta dinâmica `PORT` e entrega contínua via GitHub |
 | [`../ARQUITETURA_CRONOLOGICA_E_VETORIAL_DELTA.md`](../ARQUITETURA_CRONOLOGICA_E_VETORIAL_DELTA.md) | **Documento Arquitetural** | Estudo técnico detalhado da estratégia de economia de tokens de IA e armazenamento cronológico |
 | [`../LEIA-ME_PLATAFORMA.md`](../LEIA-ME_PLATAFORMA.md) | **Guia Rápido de Operação** | Instruções de inicialização e uso da plataforma |
 

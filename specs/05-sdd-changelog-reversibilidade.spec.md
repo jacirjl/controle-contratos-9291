@@ -19,10 +19,14 @@ Toda alteração realizada no sistema segue três regras obrigatórias:
 | **`v1.2.0-sdd-spec01-02-delta-db`** | [`01-database-schema.spec.md`](./01-database-schema.spec.md)<br/>[`02-delta-ingestion-engine.spec.md`](./02-delta-ingestion-engine.spec.md) | Motor de Ingestão Incremental (*Append-Only Delta* com SHA-256), Banco Híbrido SQLite (`document_watermarks`, `chronological_events`, `rmec_monthly_os`, `vector_chunks`) e 136 eventos cronológicos das 10 etapas. | `ingest_engine.py`, `db/contrato_9291.sqlite`, `ARQUITETURA_CRONOLOGICA_E_VETORIAL_DELTA.md` | `reverter.bat v1.2.0-sdd-spec01-02-delta-db` |
 | **`v1.2.1-sdd-spec03-fix-api`** | [`03-api-server.spec.md`](./03-api-server.spec.md) | Correção do argumento `filter_os` na rota `GET /api/vector-search` de `server.py` (resolvendo `TypeError: got an unexpected keyword argument 'os_filter'`) e alinhamento dos atributos JSON com `js/app.js`. | `server.py`, `plataforma-controle-9291/js/app.js` | `reverter.bat v1.2.1-sdd-spec03-fix-api` |
 | **`v1.3.0-sdd-spec-kit-completo`** | [`SYSTEM_SPEC.md`](./SYSTEM_SPEC.md)<br/>[`05-sdd-changelog-reversibilidade.spec.md`](./05-sdd-changelog-reversibilidade.spec.md) | Governança SDD / Spec-Kit completa (`GEMINI.md`, `specs/01..05`), endpoint `/api/git-history` e utilitários de automação (`backup.bat`, `reverter.bat`, `iniciar_plataforma.bat`). | `GEMINI.md`, `specs/*`, `backup.bat`, `reverter.bat`, `iniciar_plataforma.bat`, `server.py` | `reverter.bat v1.3.0-sdd-spec-kit-completo` |
+| **`v1.4.0-sdd-spec06-cloudrun`** | [`06-cloud-run-deploy.spec.md`](./06-cloud-run-deploy.spec.md) | Preparação completa para deploy no Google Cloud Run (`Dockerfile`, `.dockerignore`, `requirements.txt`, variável de ambiente `PORT` dinâmica e `/healthz` em `server.py`). | `Dockerfile`, `.dockerignore`, `requirements.txt`, `server.py`, `specs/06-cloud-run-deploy.spec.md` | `reverter.bat v1.4.0-sdd-spec06-cloudrun` |
 
 ---
 
 ## 3. Histórico Detalhado de Alterações (SDD Changelog)
+
+### [v1.4.0-sdd-spec06-cloudrun] — 2026-10-29
+- **Infraestrutura Cloud Run (`Spec 06`):** Criação de [`Dockerfile`](../Dockerfile), [`.dockerignore`](../.dockerignore) e [`requirements.txt`](../requirements.txt), além da adaptação de [`server.py`](../server.py) para escutar na porta dinâmica `PORT = int(os.environ.get("PORT", 8092))` e responder a *health checks* em `GET /healthz`.
 
 ### [v1.3.0-sdd-spec-kit-completo] — 2026-10-29
 - **Método SDD (Spec-Kit):** Criação da suíte formal de especificações em `specs/` (`README.md`, `SYSTEM_SPEC.md`, `01` a `05`) e diretrizes permanentes do agente em `GEMINI.md`.

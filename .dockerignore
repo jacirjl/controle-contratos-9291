@@ -1,0 +1,12 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git/
+.gitignore
+*.sqlite-shm
+*.sqlite-wal
+plataforma-controle-9291 - Copia/
+# Nota: db/contrato_9291.sqlite permanece incluído para levar o banco vetorial e cronológico pronto para o Cloud Run
